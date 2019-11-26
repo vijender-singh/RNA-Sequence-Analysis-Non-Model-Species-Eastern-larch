@@ -195,11 +195,11 @@ Global options:
 -q, --qual-threshold, Threshold for trimming based on average quality in a window. Default 20
 ```  
    
-The quality may be any score from 0 to 40. The default of 20 is much too low for a robust analysis. We want to select only reads with a quality of 30 or better. Additionally, the desired length of each read is 35bp. Again, we see that a default of 20 is much too low for analysis confidence. Lastly, we must know the scoring type. While the quality type is not listed on the SRA pages, most SRA reads use the "sanger" quality type. Unless explicitly stated, try running sickle using the sanger qualities. If an error is returned, try illumina. If another error is returned, lastly try solexa.  
+The quality may be any score from 0 to 40. The default of 20 is much too low for a robust analysis. We want to select only reads with a quality of 30 or better. Additionally, the desired length of each read is 45bp. Lastly, we must know the scoring type. While the quality type is not listed on the SRA pages, most SRA reads use the "sanger" quality type. Unless explicitly stated, try running sickle using the sanger qualities. If an error is returned, try illumina. If another error is returned, lastly try solexa.  
 
 The full slurm script which is called [sickle.sh](/Quality_Control/sickle.sh) is stored in the Quality_Control folder.  
 
-At the end of the run, each run will produce **3** files, a *trimmed forward read file*, *trimmed reverse read file* and a *singles file*. Singles file will contain the reads which did not have a paired read to start with. The following files will be produced at the end of the run:  
+At the end of the run, each run will produce **3** files, a *trimmed forward read file*, *trimmed reverse read file* and a *singles file*. Singles file will contain the reads whose pair failed to pass the thresholds set in the sickle step. The following files will be produced at the end of the run:  
 ```
 Quality_Control/
 ├── trim_U13_R1.fastq
@@ -362,7 +362,7 @@ cat ../Assembly/trinity_U13.Trinity.fasta \
 	../Assembly/trinity_K23.Trinity.fasta >> ../Assembly/trinity_combine.fasta
 ``` 
 
-Now that we have our reads assembled and combined together into the single file, we can use [TransDecoder](https://github.com/TransDecoder/TransDecoder/wiki) to determine optimal open reading frames from the assembly (ORFs). Assembled RNA-Seq transcripts may have 5′ or 3′ UTR sequence attached and this can make it difficult to determine the coding sequence (CDS) in non-model species. We will not be going into how TransDecoder works. However, should you click the link you'll be happy to see that they have a very simple one paragraph explanation telling you exactly that.
+Now that we have our reads assembled and combined together into the single file, we can use [TransDecoder](https://github.com/TransDecoder/TransDecoder/wiki) to determine optimal open reading frames from the assembly (ORFs). Assembled RNA-Seq transcripts may have 5′ or 3′ UTR sequence attached and this can make it difficult to determine the coding sequence (CDS) in non-model species. We will not be going into how TransDecoder works. Please follow the link for detials on transdecoder https://github.com/TransDecoder/TransDecoder/wiki.
 Our first step is to determine all [open-reading-frames](https://en.wikipedia.org/wiki/Open_reading_frame). We can do this using the 'TransDecoder.LongOrfs' command. This command is quite simple, with one option, '-t', which is simply our centroid fasta! The command is therefore:   
    
 ```
@@ -392,7 +392,7 @@ coding_regions
 ```
 
 
-Next step is to identify ORFs with homology to known proteins via blast or pfam searches. This will maximize the sensitivity for capturing the ORFs that have functional significance. We will be using the Pfram databases. Pfam stands for "Protein families", and is simply an absolutely massive database with mountains of searchable information on, well, you guessed it, protein families. We can scan the Pfam databases using the software hmmer, a database homologous-sequence fetcher. The Pfam databases are much too large to install on a local computer. However, you may find them on Xanadu in the directory '/isg/shared/databases/Pfam/Pfam-A.hmm', which is an hmmer file (must be an hmmer file for hmmer to scan!).  
+Next step is to identify ORFs with homology to known proteins via blast or pfam searches. This will maximize the sensitivity for capturing the ORFs that have functional significance. We will be using the Pfam databases. Pfam stands for "Protein families", and is simply an absolutely massive database with mountains of searchable information on, well, you guessed it, protein families. We can scan the Pfam databases using the software hmmer, a database homologous-sequence fetcher. The Pfam databases are much too large to install on a local computer. However, you may find them on Xanadu in the directory '/isg/shared/databases/Pfam/Pfam-A.hmm', which is an hmmer file (must be an hmmer file for hmmer to scan!).  
    
 ```
 hmmscan --cpu 16 \
@@ -475,11 +475,8 @@ In the next step we will be using the *trinity_combine.fasta.transdecoder.cds* f
 ## 5. Determining and Removing Redundant Transcripts
 
 ### Clustering using vsearch
-Because we used RNA reads to sequence our transcriptome, chances are that there are multiples of the same reads varying slightly which create multiples of the same assembled sequence. Under this assumption, we may also assume that most of the modules in our assembled transcriptome are actually repeats, the results of the assembly of slightly different reads from the same gene. We want to remove the repeats of these modules to shorten the length of our transcriptome and make for more efficient work in the future. We can do this by partitioning and clustering the transcriptome, then taking only one module from each of the clusters. There is a very convenient software which performs all of this for us in the exact way just described: [vsearch](https://github.com/torognes/vsearch).
-
-To obtain a set of unique genes from both runs, we will cluster the two resulting assemblies together. First, the two assembies will be combined into one file using the Unix command cat, which refers to concatenate.
-
-Since we have selected our reads according to the coding regions in the previous step, we will use vsearch to find redundancy between the assembled transcripts and create a single output known as a centroids file. The threshold for clustering in this example is set to 80% identity. In this step we will be working in the **Clustering/** directory:   
+We independently assembled transcriptome for the 4 samples using trinity. There will be many transcripts that are present in all the 4 assembled transcriptome,  and hence will be present multiple times in the `trinity_combine.fasta`.  In the previous step we used `transdecoder` to get rid of spurious transcripts based on the criteria of coding region and pfam matches. However this will not affect the redundency between the transcripts and we still have the issue of multiple represntation of same /similar transcripts. We will be using vsearch to cluster the transcripts with similar sequences (similarity is set by the identity between the sequences --id) and then collapse them in one representative transcript (centroid). A more detailed account of the application can be found at: [vsearch](https://github.com/torognes/vsearch).
+The threshold for clustering in this example is set to 90% identity. In this step we will be working in the **Clustering/** directory:   
  
 ```bash
 module load vsearch/2.4.3
@@ -553,7 +550,7 @@ Longest transcript   |   13230
 Total length   |    42619973   
 Transcript N50  |    407   
 
-
+Now we have generated a reference transcriptome with possible transcripts.  We would use these transcripts and measure their expression in the 4 samples.  In this tutorial we will be using `Kallisto`In order to achieve that we have to a tool to quantify the expression of each transcript using the fastq files.  Here we will be using `kallisto` to quantify transcript expression based on the reads present in the fastq files. In order to use `kallisto` we have to index our transcriptome which a pre-requisite for using this application.  So our next step is indexing our reference transcriptome.
      
 ## 7. Creating An Index   
 
