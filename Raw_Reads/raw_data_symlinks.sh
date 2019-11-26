@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=raw_data_simlinks
+#SBATCH --job-name=raw_data_symlinks
 #SBATCH -n 1
 #SBATCH -N 1
 #SBATCH -c 1
