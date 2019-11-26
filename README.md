@@ -550,7 +550,7 @@ Longest transcript   |   13230
 Total length   |    42619973   
 Transcript N50  |    407   
 
-Now we have generated a reference transcriptome with possible transcripts.  We would use these transcripts and measure their expression in the 4 samples.  In this tutorial we will be using `Kallisto`In order to achieve that we have to a tool to quantify the expression of each transcript using the fastq files.  Here we will be using `kallisto` to quantify transcript expression based on the reads present in the fastq files. In order to use `kallisto` we have to index our transcriptome which a pre-requisite for using this application.  So our next step is indexing our reference transcriptome.
+Now that we have generated a reference transcriptome with possible transcripts.  We will measure the expression of transcripots across the 4 samples.  In this tutorial we will be using `Kallisto` for quantifying transcripts based on the reads in the fastq files.  In order to use `kallisto` we have to index our transcriptome, a pre-requisite for using this application.  So our next step is indexing our reference transcriptome.
      
 ## 7. Creating An Index   
 
