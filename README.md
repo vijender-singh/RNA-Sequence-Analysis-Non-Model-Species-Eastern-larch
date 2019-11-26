@@ -88,7 +88,7 @@ Before beginning, we need to understand a few aspects of the Xanadu server. When
 
 These data files are only avaliable through Xanadu cluster, as they belong to the Dr. Jill Wegrzyn lab. If you are working in the Xanadu cluster to avoid redundancy in the data files, you can create a simlink to the read files. After creating sym-links you can work your way though the rest of the steps as we have discussed in the tutorial. 
 
-So in the **Raw_Reads/** folder we have created a script to creat a sym-links for the actual data, which is called [raw_data_simlinks.sh](/Raw_Reads/raw_data_simlinks.sh), You can run this script using `sbatch` command.  
+So in the **Raw_Reads/** folder we have created a script to creat a sym-links for the actual data, which is called [raw_data_symlinks.sh](/Raw_Reads/raw_data_symlinks.sh), You can run this script using `sbatch` command.  
  
   
 Raw_Reads folder will look like:  
