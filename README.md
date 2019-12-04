@@ -707,6 +707,13 @@ gfold diff [options]
 -s2      sample-2
 -o	 output file name
 -suf	 input files extention
+
+OPTIONAL FLAGS:
+-acc <T/F>	When no replicate is available, whether to use accurate method to calculate GFOLD value. T stands for 	accurate which depends on sequencing depth and slower, F stands for MCMC. Default T. For job diff only.
+
+-sc <num>	The significant cutoff for fold change. Default 0.01. For job diff only.
+
+-norm <Count/DESeq/NO>  The way to do normalization. 'Count' stands for normalization by total number of mapped reads. 'DESeq' stands for the normalization proposed by DESeq. 'NO' stands for no normalization. You can also specifiy a list of normalization constant separated by commas. E.g. 1.2,2.1,1.0,2.0. Note that the number of constants should be the same as the total number of samples (group1 and group2) and the order should be for -s1 followed by for -s2. GFOLD using normalization constants not by directly multiplication (scaling up) nor division (scaling down). The normalization constants will be built into the model. In the model, division or multiplication has no difference. Default 'DESeq'.
 ```
    
 The complete slurm script is called [gfold.sh](/Gfold/gfold.sh) which is stored in the **Gfold/** directory. Running Gfold will generate the following files, which contains the fold change value between the two conditions.
@@ -726,6 +733,15 @@ TRINITY_DN26839_c0_g2_i1.p1     TRINITY_DN26839_c0_g2_i1.p1     3.81393 1       
 TRINITY_DN21012_c2_g1_i3.p1     TRINITY_DN21012_c2_g1_i3.p1     2.4016  1       2.65392 2.8545  25.8846
 TRINITY_DN17708_c0_g1_i3.p1     TRINITY_DN17708_c0_g1_i3.p1     2.27485 1       2.74287 0.890033        8.71362
 ```  
+The GFOLD output has 7 coloumns 
+**GeneSymbola and GeneName** columns are self explanatory as they provide information on gene symbol and name.
+**GFOLD** column provides fold change values in log2 format and can be used to obtain a biological meaningful ranking of genes. Any gene that passes the significance cutoff (p-value) of 0.01 and shows 2 or more fold change in expression have values indicated against them.  Genes not satisfying these 2 criterias have value=0 against them. Values are calculated as log2(s2/s1).  The significance cut off can be set by using -sc flag. Since the values are in log2 format, the cut off starts at +1 for upregulated genes and -1 for downregulated genes.  Genes with values greater than +1 (1.2435,2.4982,3.53474 etc) have 2 fold increase in expression in s2 samples wheres values less than -1 (-1.6584,-2.0078,-4.6768 etc) will have 2 fold lower or lesser expression in s2 compared to s1.
+**E-FDR** column represents the FDR values calculated to correct for multiple testing.  In absence of replicates the value is set to 1 as seen above.  This column will have other values if we have replicates in our study.
+**log2fc** column have log2 fold change obtained from s2/s1 for all genes even for those who doesnot pass the significance cut off and have lover than 2 or no change in expression between conditions. These values are slightly different from GFOLD because fold change is based on the sampled expression level from the posterior distribution bt taking in account gene lengths.
+**1-RPKM** represent RPKM values for genes in s1 sample.
+**2-RPKM** represent RPKM values for genes in s2 sample.
+
+
 
 
 ### b. Differentially Expressed Genes using NOISeq  
