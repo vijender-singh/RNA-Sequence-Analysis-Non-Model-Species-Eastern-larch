@@ -536,7 +536,22 @@ Command options we used in the above are:
 --output_dir <OUTPUT_DIR>               Directory to store all results
 ```
 
-The full slurm script is called [rnaQuast.sh](/RNAQuast/rnaQuast.sh) and it can be found in the **RNAQuast/** directory.   
+The full slurm script is called [rnaQuast.sh](/RNAQuast/rnaQuast.sh) and it can be found in the **RNAQuast/** directory.    
+
+```
+RNAQuast/
+├── results/
+│   ├── centroids_output/
+│   │   ├── alignment_metrics.txt
+│   │   └── txt_dir/
+│   ├── logs/
+│   │   └── rnaQUAST.log
+│   ├── short_report.pdf
+│   ├── short_report.tex
+│   ├── short_report.tsv
+│   └── short_report.txt
+└── rnaQuast.sh
+```
 
 The program will produce various statistics and it will produce a short summary report as well as a long report, where you can look and assess the quality of your assembled transcriptome. Shown below are matrics which is produced in *alignment_metrics.txt* file. 
 
