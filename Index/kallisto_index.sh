@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=kallisto_counts
+#SBATCH --job-name=kallisto
 #SBATCH -n 1
 #SBATCH -N 1
 #SBATCH -c 1
