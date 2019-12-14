@@ -600,6 +600,15 @@ kallisto quant -i ../Kallisto_Index/Eastern_larch_index \
         -t 8 \
         ../Quality_Control/trim_K32_R1.fastq ../Quality_Control/trim_K32_R2.fastq
 
+kallisto quant -i ../Index/Eastern_larch_index \
+        -o U32 \
+        -t 8 \
+        ../Quality_Control/trim_U32_R1.fastq ../Quality_Control/trim_U32_R2.fastq
+
+kallisto quant -i ../Index/Eastern_larch_index \
+        -o U13 \
+        -t 8 \
+        ../Quality_Control/trim_U13_R1.fastq ../Quality_Control/trim_U13_R2.fastq
 ``` 
     
 Usage information of the `kallisto quant`:
@@ -629,6 +638,14 @@ The quantification algorithm will produce three output files:
 When you run the above kallisto quantification algorithm, it will produce the following output:  
 ```
 Counts/
+├── U13/
+│   ├── abundance.h5
+│   ├── abundance.tsv
+│   └── run_info.json
+├── U32/
+│   ├── abundance.h5
+│   ├── abundance.tsv
+│   └── run_info.json
 ├── K23/
 │   ├── abundance.h5
 │   ├── abundance.tsv
