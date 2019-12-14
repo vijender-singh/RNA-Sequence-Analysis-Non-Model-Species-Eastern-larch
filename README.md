@@ -754,7 +754,15 @@ In order to get the expressed genes using NOISeq program, you need to provide th
 ```
 awk '{print $1 "\t" $4}' ../Counts/K23/abundance.tsv > K23.counts
 awk '{print $1 "\t" $4}' ../Counts/K32/abundance.tsv > K32.counts
+awk '{print $1 "\t" $4}' ../Counts/U32/abundance.tsv > U32.counts
+awk '{print $1 "\t" $4}' ../Counts/U13/abundance.tsv > U13.counts
 ```   
+
+We also need the transcript length information, for the NOISeq calculation. It can be gathered from the *abundance.tsv* file as well, using the following code:  
+
+```awk
+awk '{print $1 "\t" $2}' ../Counts/K23/abundance.tsv > length.txt
+``` 
 
 You can run this command in an interactive session or can run the [counts.sh](/NOISeq/counts.sh) script using shell in a interactive session.   
   
@@ -762,22 +770,26 @@ You can run this command in an interactive session or can run the [counts.sh](/N
 sh counts.sh
 ```   
 
-This will produce counts files with two columns where it will contain the Gene Name and the counts associated with it.   
+This will produce counts files with two columns where it will contain the Gene Name and the counts associated with it. Also the length file with two columns which includes the transcript name and transcript length.  
 
 ```
 NOISeq/
+├── U13.counts
+├── U32.counts
 ├── K23.counts
-└── K32.counts
+├── K32.counts
+└── length.txt
 ```   
 
   
 ### NOISeq to produce differentially expressed genes   
 
-This part can be run using the cluster or using your own PC or laptop. We recommend transferring the above counts files to your own computer and using the RStudio package.
+This part can be run using the cluster or using your own PC or laptop. We recommend transferring the above counts files and the feature length file to your own computer and using the RStudio package.
 
-To transfer the count files from cluster to your location using a terminal window: 
+To transfer the count files and the transcript feature length file from cluster to your location using a terminal window: 
 ```bash
 scp <user name>@transfer.cam.uchc.edu:<PATH-to-NOISeq-Directory>/Eastern_larch/NOISeq/*.counts .
+scp <user name>@transfer.cam.uchc.edu:<PATH-to-NOISeq-Directory>/Eastern_larch/NOISeq/length.txt .
 ```
 
 **Prerequisites:** Before using the NOISeq package you need to make sure you have already downloaded the required packages including: NOISeq and dplyr. If not please download the necessary packages which are compatible with your version of R. 
@@ -830,7 +842,8 @@ for (i in list.files(pattern = ".counts")) {
 rownames(m) <- m[,1]
 
 # remove the column-1 (gene_ids) from the data frame using dplyr::select function
-m <- select(m, "K23", "K32")
+m <- select(m, "K23", "K32", "U13", "U32")
+rm(f)
 ```   
 
 Once the dataframe is created each column is represented by a sample and the rows with feature counts.  
@@ -841,9 +854,9 @@ Next we will prepare the metadata for the analysis. In here we can include the s
 #################################################
 ## MetaData
 #################################################
-Sample = c("K32", "K23")
-Condition = c("Killingworth", "Killingworth")
-TimePoint = c("T2", "T3")
+Sample = c("K32", "K23", "U13", "U32")
+Condition = c("Killingworth", "Killingworth", "UConn", "UConn")
+TimePoint = c("T2", "T3", "T3", "T2")
 myfactors <- data.frame(Sample, Condition, TimePoint)
 myfactors
 ```   
@@ -864,6 +877,17 @@ m <- m[, myfactors$Sample]
 all(colnames(m) == myfactors$Sample)
 ```   
 
+We need to import the length information as a part of our meta data. 
+```r
+# import length information to a dataframe
+df_length <- read.table("length.txt", sep = "\t", header = TRUE, row.names = 1)
+
+# create a vector to hold the length information
+mylength <- setNames(object = df_length$length, row.names(df_length))
+head(mylength)
+```
+  
+
 As the next step we will create the NOISeq object using the count dataframe and factors dataframe created above.  
 
 ```r
@@ -874,80 +898,98 @@ As the next step we will create the NOISeq object using the count dataframe and 
 library(NOISeq)
 
 # Creating a NOISeq object
-mydata <- readData(data = m, factors = myfactors)
+mydata <- readData(data = m, factors = myfactors, length = mylength)
 mydata
 
 head(assayData(mydata)$exprs)
+head(featureData(mydata)@data)
 head(pData(mydata))
 ```   
 
-####  PCA Plots 
-Principle component analysis plots can be obtained using the package. Before generating any type of plots, *dat* function must be applied on the input data which is the NOISeq object to obtain the data which is needed. This can be passed using the _type_ argument. Once the data is generated to plot, image can be generated using the _explo.plot_ function.  
+#### Quality Control of Count Data  
+Before proceeding with the analysis of data it is important to see the quality of the experimental data. This includes determining possible biases of the data. In this tutorial we have shown the following plots to identify the quality of our count data.   
+1.   Count distribution 
+2.   Lengthbiases   
+3.   Batch effects   
 
-PCA component analysis is a technique whcich can be used to visualize if the experimental samples are clustered according to the experimental design. 
+Before generating any type of plots, *dat* function must be applied on the input data which is the NOISeq object to obtain the data which is needed. This can be passed using the _type_ argument. Once the data is generated to plot, image can be generated using the _explo.plot_ function.
+
+##### 1. Count distribution plot  
+As a part of a quality control step before procedding with the analysis it is important to visualize the possible bias of the sample. As a part of this we can detect the count distribution of samples.   
+
+```r
+#####################################################
+## Count Distribution 
+#####################################################
+countsbio = dat(mydata, factor = NULL, type = "countsbio")
+explo.plot(countsbio, toplot = 1, samples = NULL, plottype = "boxplot")
+```
+![](images/Count_distribution_plot.png)
+
+##### 2. Length bias plot  
+Lengthbias plot will discribe the relation of the feature length towards the expression values. Once caluclated, both model p-value and coefficient of determination (R2) are shown in the plot with the regression curve. 
+
+```r
+##############
+## Length Bias
+##############
+mylenghtbias = dat(mydata, factor = "TimePoint", type = "lengthbias")
+explo.plot(mylenghtbias, samples = NULL, toplot = "global")
+```
+
+![](images/Lengthbias_plot.png)   
+
+Significant p-value with a high R2 value will indicate a expression is dependent on the feature length and the curve shows its dependence.  
+
+
+##### 3.  PCA plots 
+Principle component analysis (PCA) plots can be used to visualize how the samples are clustered acoording to the experimental design.   
+
 
 ```r
 ##############
 ## PCA
-#############
+##############
 myPCA = dat(mydata, type = "PCA")
 explo.plot(myPCA, factor= "TimePoint")
 ```   
 
-![](images/PCA_plot.png)  
+![](images/PCA_plot_Timepoint.png)  
 
 
-#### NOISeq-sim  
+#### NOISeq-bio  
 
-NOISeq method can be used to compute differential expression on data set with technical replicates (NOISeq-real) or without replicates (NOISeq-sim). NOISeq computes the differential statistics for each feature:   
-
-*   **M**: log2 ratio of the two conditions  
-*   **D**: value difference between conditions   
-
- 
-
-A feature is considered differentially expressed if corresponding M and D values are higher than the noise. Therefore by comparing the M and D values of a given feature against the noise distribution, NOISeq produces the *probability of differential expression"*  for this feature. In the case of no replicates, NOISeq simulates technical replicates in order to estimate this. Please remember that this is an approximation and will be only showing which genes will be showing a higher change between conditions.   
+NOISeq method can be used to compute differential expression on data set with technical replicates (**NOISeq-real**) or without replicates (**NOISeq-sim**). Also NOISeq method can be applied with there is biological replicates (**NOISeq-bio**) where it will be averaged up.   
+  
+In here we will show you how to calculate the differential expression, when there is biological replicates. We will take into account the TimePoint as our factor where it has biological replicates at T2 and T3.   
 
 ```r  
 ###########################
 ## Differential Expression
 ###########################
-## T1 vs T2
-mynoiseq.sim <-  noiseq(mydata,
-                        factor = "TimePoint",
-                        k = 0.5,
-                        norm = "rpkm",
-                        replicates = "no")
+# lc = 1 RPKM values with length correction
+# lc = 0 no length correction applied
+mynoiseq.bio <- noiseqbio(mydata,
+                          factor = "TimePoint",
+                          norm = "rpkm",
+                          random.seed = 12345,
+                          lc = 1)
+
+head(mynoiseq.bio@results[[1]])
 ```  
 
-noiseq function can be used to calculate differential expression between two conditions, which might have technical replicates or no-replicates at all.   
-**norm** is the normalization method to be used, which can be rpkm by default, or uqua (upper quartile), tmm (trimmed mean of M) or n which is no normalization.   
+**noiseqbio** function can be used to calculate differential expression, which have biological replicates.  `norm` is the normalization method to be used, which can be rpkm by default, or uqua (upper quartile), tmm (trimmed mean of M) or n which is no normalization. In here `lc = 1 ` is used to calculate the RPKM values with the length correction.    
 
 This will produce a noiseq object which contains following elements:
 
 ```bash
-Summary 1 
-=========
-
-You are comparing T2 - T3 from TimePoint 
-
-                                T2_mean    T3_mean         M         D prob   ranking
-TRINITY_DN12413_c0_g1_i1.p1  296.778114   2.260921  7.036330  294.5172    1  294.6012
-TRINITY_DN13923_c0_g1_i2.p1 1139.652835   7.632735  7.222179 1132.0201    1 1132.0431
-TRINITY_DN17198_c0_g1_i2.p1    3.843722 277.103498 -6.171777  273.2598    1 -273.3295
-TRINITY_DN17257_c0_g1_i1.p1  312.418828   1.004854  8.280352  311.4140    1  311.5240
-TRINITY_DN1780_c0_g1_i1.p1   367.784190   1.758494  7.708375  366.0257    1  366.1069
-TRINITY_DN18170_c0_g1_i1.p1  383.423108   4.019415  6.575808  379.4037    1  379.4607
-
-Normalization
-	method: rpkm 
-	k: 0.5 
-	lc: 0 
-
-You are working with simulated replicates:
-	pnr: 0.2 
-	nss: 5 
-	v: 0.02 
+                              T2_mean    T3_mean      theta      prob     log2FC length
+TRINITY_DN0_c0_g1_i1.p1     14.014433 10.6701081  0.0880846 0.5045883  0.3933386    883
+TRINITY_DN1_c0_g1_i1.p2      9.889114 29.7867351 -0.3592379 0.9703946 -1.5907568    711
+TRINITY_DN1000_c0_g1_i1.p1   1.983390  0.9570247  0.1529210 0.6428457  1.0513405    714
+TRINITY_DN10000_c0_g1_i2.p1 14.294755 19.6743936 -0.1065910 0.7681836 -0.4608333   1050
+TRINITY_DN10001_c0_g1_i1.p2 84.469598  3.6968466  0.9136529 0.9971911  4.5140651    458
+TRINITY_DN10001_c0_g1_i2.p1 43.963212 53.6521530 -0.1153515 0.7883396 -0.2873393   1398
 ```   
 
 #### Selecting differentially expressed features  
@@ -955,59 +997,49 @@ You are working with simulated replicates:
 The next step would be, how to select the differentially expressed features. This can be done using **degenes** function and applying a threshold using the q value. With the argument M, we can choose if we want all the differentially expressed genes (NULL), only the differentially expressed features that are more expressed in condition 1 than in condition 2 (M="up") or only the features which are under expressed in condition 1 with regard to condition 2 (M = "down").  
 
 ```r
-mynoiseq.sim.deg = degenes(mynoiseq.sim, q = 0.9, M = NULL)
+mynoiseq.bio.deg = degenes(mynoiseq.bio, q = 0.9 , M= NULL)
 ```  
 ```
-[1] "27042 differentially expressed features"
+[1] "47586 differentially expressed features"
 ```
 
 ```r 
-mynoiseq.sim.deg_up = degenes(mynoiseq.sim, q = 0.9, M = "up")
+mynoiseq.bio.deg_up = degenes(mynoiseq.bio, q = 0.9 , M= "up")
+head(mynoiseq.bio.deg_up)
 ```  
 ```
-[1] "18218 differentially expressed features (up in first condition)"
+[1] "23355 differentially expressed features (up in first condition)"
+                               T2_mean    T3_mean    theta prob    log2FC length
+TRINITY_DN57434_c1_g3_i1.p1 2899.89293 0.08799537 2.785696    1 15.008213    447
+TRINITY_DN58863_c0_g2_i9.p1   24.55380 0.02478509 1.712863    1  9.952258   1587
+TRINITY_DN57127_c0_g1_i1.p1   52.09588 0.08043748 1.713380    1  9.339086    489
+TRINITY_DN50342_c0_g1_i1.p1   53.81552 0.08404686 1.713626    1  9.322613    468
+TRINITY_DN56349_c0_g1_i1.p1   42.69485 0.05853263 1.713635    1  9.510605    672
+TRINITY_DN56871_c1_g1_i3.p2   52.80055 0.08143671 1.714048    1  9.340658    483
 ```  
 
+
 ```r
-mynoiseq.sim.deg_down = degenes(mynoiseq.sim, q = 0.9, M = "down")
+mynoiseq.bio.deg_down = degenes(mynoiseq.bio, q = 0.9 , M= "down")
+head(mynoiseq.bio.deg_down)
 ```  
 ```
-[1] "8824 differentially expressed features (down in first condition)"
+[1] "24231 differentially expressed features (down in first condition)"
+                                  T2_mean     T3_mean     theta      prob      log2FC length
+TRINITY_DN27469_c0_g1_i1.p1  6.879962e+02 1359.342646 -3.810915 1.0000000  -0.9824367    412
+TRINITY_DN13350_c0_g2_i1.p1  1.207381e-07    4.437976 -3.351256 1.0000000 -25.1315171    327
+TRINITY_DN21734_c1_g1_i5.p1  1.811139e-06   15.734521 -3.223580 1.0000000 -23.0505324    663
+TRINITY_DN20971_c0_g1_i26.p1 3.058669e+02  643.731754 -2.358441 1.0000000  -1.0735556    372
+TRINITY_DN25591_c0_g1_i1.p1  1.680417e-01  132.087619 -1.809176 0.9997979  -9.6184604    384
+TRINITY_DN27792_c0_g1_i23.p1 6.759308e-01   40.725362 -1.798873 0.9987484  -5.9129081    675
 ```  
 
 These features can be written into a csv file using the following command.
 ```r
-prefix = "T1_T2_noiseq"
-write.csv(mynoiseq.sim.deg_up, file = paste0(csv_out, "/" ,prefix, "_DEgenes_up.csv"))
-write.csv(mynoiseq.sim.deg_down, file = paste0(csv_out, "/", prefix, "_DEgenes_down.csv"))
-```   
-
-
-#### Plots  
-Once the differential expression is computed using the NOISeq package we can generate plots to highlight differentiall expressed features using **DE.plot** function.
-
-#### Expression plot
-Expression values can be plotted using the **DE.plot** function, by selecting _q=0.9_ we are selecting differentially expressed features to highlighted in red.  
-
-```r
-## Plots
-## Expression Plot
-jpeg("T1_T2_expression.jpeg")
-DE.plot(mynoiseq.sim, q = 0.9, graphic = "expr", log.scale = TRUE)
-dev.off()
-```   
-![](/images/T1_T2_expression.jpeg)
-
-#### MD plot  
-Using the argument _MD_, we can plot the log-fold change of M and the absolute value of difference in expression between conditions (D) instead of plotting the expression values. 
-
-```r
-## MD plot
-jpeg("T1_T2_MDplot.jpeg")
-DE.plot(mynoiseq.sim, q = 0.9, graphic = "MD")
-dev.off()
-```
-![](/images/T1_T2_MDplot.jpeg)  
+prefix = "T2_T3_noiseq"
+write.csv(mynoiseq.bio.deg_up, file = paste0(csv_out, "/" ,prefix, "_DEgenes_up.csv"))
+write.csv(mynoiseq.bio.deg_down, file = paste0(csv_out, "/", prefix, "_DEgenes_down.csv"))
+``` 
 
 
 
