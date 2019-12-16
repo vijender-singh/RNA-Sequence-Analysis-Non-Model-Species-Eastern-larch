@@ -684,7 +684,8 @@ TRINITY_DN21012_c2_g1_i3.p1	10839	10681.3	172	1.05472
 
 ## 9. Diffferential Expression 
 
-In this section we will show you two methods of finding the differentially expressed genes namely **Gfold** and **NOISeq**.  
+In this section we will show you two methods of finding the differentially expressed genes namely **Gfold** and **NOISeq**. 
+Where as Gfold and NOISeq both can used to find differentially expressed genes when there are no-replicates as well as replicates avaliable. In this tutorial we will use Gfold, to find DE genes, when you do not have replicates and next we will use the NOISeq, show an example when you have replicates. 
 
 ### a. Differentially Expressed Genes using Gfold   
 
@@ -1083,7 +1084,7 @@ write.csv(mynoiseq.bio.deg_down, file = paste0(csv_out, "/", prefix, "_DEgenes_d
 
 ## 10. EnTAP - Functional Annotation for DE Genes  
 
-Once the differentially expressed genes have been identified, we need to annotate the genes to identify the function. We will take the top 10 upregulated genes from the gfold output and will do a quick annotation. In order to run the [**EnTAP**](https://entap.readthedocs.io/en/v0.9.0-beta/index.html) program, we need to provide a peptide sequence of the genes which we want to do the functional annotation.   
+Once the differentially expressed genes have been identified using the Gfold example, we need to annotate the genes to identify the function. We will take the top 10 upregulated genes from the gfold output and will do a quick annotation. In order to run the [**EnTAP**](https://entap.readthedocs.io/en/v0.9.0-beta/index.html) program, we need to provide a peptide sequence of the genes which we want to do the functional annotation.   
   
 Using the python program called [ExtractSequence.py](/EnTAP/ExtractSequence.py) we will be extracting the top upregulated genes according to the Gfold output file (K32_vs_K23.diff). 
 
