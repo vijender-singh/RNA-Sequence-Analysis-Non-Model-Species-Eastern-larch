@@ -992,7 +992,7 @@ explo.plot(myPCA, factor= "TimePoint")
 
 #### NOISeq-bio  
 
-NOISeq method can be used to compute differential expression on data set with technical replicates (**NOISeq-real**) or without replicates (**NOISeq-sim**). Also NOISeq method can be applied with there is biological replicates (**NOISeq-bio**) where it will be averaged up.   
+NOISeq method can be used to compute differential expression on data set with technical replicates (**NOISeq-real**) or without replicates (**NOISeq-sim**). Also NOISeq method can be applied when there are biological replicates (**NOISeq-bio**).   
   
 In here we will show you how to calculate the differential expression, when there is biological replicates. We will take into account the TimePoint as our factor where it has biological replicates at T2 and T3.   
 
