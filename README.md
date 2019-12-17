@@ -355,10 +355,10 @@ So we will have three assembly files, one for each condition or time step.
 
 Now we have our assembled transcriptomes for the each of the libraries. If you open trinity assembled fasta files you may find that fasta assembly file from two samples have the same sequence ID but entirely different sequences.  That is due to the fact that trinity assign names in preset format and they get repeated in each assembly run.  To make the sequence ID's unique we will add sample name as prefix using the code below
 ```bash
-sed -i `s/>/>K23/g` trinity_K23.Trinity.fasta >> trinity_K23.Trinity.fasta
-sed -i `s/>/>K23/g` trinity_K32.Trinity.fasta >> trinity_K32.Trinity.fasta
-sed -i `s/>/>K23/g` trinity_U13.Trinity.fasta >> trinity_U13.Trinity.fasta
-sed -i `s/>/>K23/g` trinity_U32.Trinity.fasta >> trinity_U32.Trinity.fasta
+sed `s/>/>K23/g` trinity_K23.Trinity.fasta > trinity_prefix_K23.Trinity.fasta
+sed `s/>/>K32/g` trinity_K32.Trinity.fasta > trinity_prefix_K32.Trinity.fasta
+sed `s/>/>U13/g` trinity_U13.Trinity.fasta > trinity_prefix_U13.Trinity.fasta
+sed `s/>/>U32/g` trinity_U32.Trinity.fasta > trinity_prefix_U32.Trinity.fasta
 
 ```
 
@@ -367,10 +367,10 @@ sed -i `s/>/>K23/g` trinity_U32.Trinity.fasta >> trinity_U32.Trinity.fasta
 Before looking for the coding regions we will combine all the assemblies together. We will be working in the **Coding_Regions/** directory, and for this we will use the UNIX command `cat`.      
 
 ```bash
-cat ../Assembly/trinity_U13.Trinity.fasta \
-	../Assembly/trinity_U32.Trinity.fasta \
-	../Assembly/trinity_K32.Trinity.fasta \
-	../Assembly/trinity_K23.Trinity.fasta >> ../Assembly/trinity_combine.fasta
+cat ../Assembly/trinity_prefix_U13.Trinity.fasta \
+	../Assembly/trinity_prefix_U32.Trinity.fasta \
+	../Assembly/trinity_prefix_K32.Trinity.fasta \
+	../Assembly/trinity_prefix_K23.Trinity.fasta >> ../Assembly/trinity_combine.fasta
 ``` 
 
 Now that we have our reads assembled and combined together into the single file, we can use [TransDecoder](https://github.com/TransDecoder/TransDecoder/wiki) to determine optimal open reading frames from the assembly (ORFs). Assembled RNA-Seq transcripts may have 5′ or 3′ UTR sequence attached and this can make it difficult to determine the coding sequence (CDS) in non-model species. We will not be going into how TransDecoder works. Please follow the link for detials on transdecoder https://github.com/TransDecoder/TransDecoder/wiki.
