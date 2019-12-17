@@ -353,7 +353,7 @@ So we will have three assembly files, one for each condition or time step.
    
 ### Identifying coding regions using TransDecoder   
 
-Now we have our assembled transcriptomes for the each of the libraries. If you open trinity assembled fasta files you may find that fasta assembly file from two samples have the same sequence ID but entirely different sequences.  That is due to the fact that trinity assign names in preset format and they get repeated in each assembly run.  To make the sequence ID's unique we will add sample name as prefix using the code below
+Now we have our assembled transcriptomes for the each of the libraries. If you carefully investigate into trinity assembled fasta files you may find fasta file from two different samples have the same sequence ID but entirely different sequences corresponding to it.  That is due to the fact that trinity assign names in preset format and they get repeated in every trinity assembly run.  To make the sequence ID's unique we will add sample name as prefix using the code below
 ```bash
 sed `s/>/>K23/g` trinity_K23.Trinity.fasta > trinity_prefix_K23.Trinity.fasta
 sed `s/>/>K32/g` trinity_K32.Trinity.fasta > trinity_prefix_K32.Trinity.fasta
