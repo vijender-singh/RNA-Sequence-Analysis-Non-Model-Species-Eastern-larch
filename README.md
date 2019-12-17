@@ -353,7 +353,18 @@ So we will have three assembly files, one for each condition or time step.
    
 ### Identifying coding regions using TransDecoder   
 
-Now we have our assembled transcriptomes for the each of the libraries. Before looking for the coding regions we will combine all the assemblies together. We will be working in the **Coding_Regions/** directory, and for this we will use the UNIX command `cat` as follows:  
+Now we have our assembled transcriptomes for the each of the libraries. If you open trinity assembled fasta files you may find that fasta assembly file from two samples have the same sequence ID but entirely different sequences.  That is due to the fact that trinity assign names in preset format and they get repeated in each assembly run.  To make the sequence ID's unique we will add sample name as prefix using the code below
+```bash
+sed -i `s/>/>K23/g` trinity_K23.Trinity.fasta >> trinity_K23.Trinity.fasta
+sed i `s/>/>K23/g` trinity_K32.Trinity.fasta >> trinity_K32.Trinity.fasta
+sed i `s/>/>K23/g` trinity_U13.Trinity.fasta >> trinity_U13.Trinity.fasta
+sed i `s/>/>K23/g` trinity_U32.Trinity.fasta >> trinity_U32.Trinity.fasta
+
+```
+
+
+
+Before looking for the coding regions we will combine all the assemblies together. We will be working in the **Coding_Regions/** directory, and for this we will use the UNIX command `cat`.      
 
 ```bash
 cat ../Assembly/trinity_U13.Trinity.fasta \
