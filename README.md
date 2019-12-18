@@ -1117,13 +1117,22 @@ EnTAP/
 ├── entap_config.txt
 ```
 
-Once we have the fasta file with the protein sequences, and the config file setup, we can run the enTAP program to grab the functional annotations using the following command.     
+Once we have the fasta file with the protein sequences, and the config file setup, we can run the enTAP program to grab the functional annotations using the following command. The `-c` flags will mark sequences that have hits to bacteria and fungi as possible contaminants, while the `--taxon` flag will favor annotations coming from congenerics in *Larix*. 
+
 ```bash
 module load EnTAP/0.9.0-beta
 module load diamond/0.9.19
 
 
-EnTAP --runP -i ExtractedSq.fasta -d /isg/shared/databases/Diamond/RefSeq/plant.protein.faa.97.dmnd -d /isg/shared/databases/Diamond/Uniprot/uniprot_sprot.dmnd --ontology 0  --threads 8
+EnTAP --runP \
+-i ExtractedSq.fasta \
+-d /isg/shared/databases/Diamond/RefSeq/plant.protein.faa.97.dmnd \
+-d /isg/shared/databases/Diamond/Uniprot/uniprot_sprot.dmnd \
+--ontology 0  \
+--threads 8 \
+-c bacteria \
+-c fungi \
+--taxon Larix
 ```
    
    
