@@ -353,18 +353,16 @@ So we will have three assembly files, one for each condition or time step.
    
 ### Identifying coding regions using TransDecoder   
 
-Now we have our assembled transcriptomes for the each of the libraries. If you carefully investigate into trinity assembled fasta files you may find fasta file from two different samples have the same sequence ID but entirely different sequences corresponding to it.  That is due to the fact that trinity assign names in preset format and they get repeated in every trinity assembly run.  To make the sequence ID's unique we will add sample name as prefix using the code below
+Before looking for the coding regions we will combine all the assemblies together so we can ultimately pick a single best contig to represent each gene we find. Before we can combine these files, we first need to ensure that each sequence has a unique name. Because of Trinity's naming convention, there are likely to be identical sequence names appearing in each assembly. These redundant names would confuse TransDecoder and turn some of its output into nonsense. Worse, this error would occur silently and be propagated to the rest of our analyses. To deal with this, we'll simply add a sample ID prefix to each sequence name using the linux utility `sed`. 
+
 ```bash
-sed `s/>/>K23/g` trinity_K23.Trinity.fasta > trinity_prefix_K23.Trinity.fasta
-sed `s/>/>K32/g` trinity_K32.Trinity.fasta > trinity_prefix_K32.Trinity.fasta
-sed `s/>/>U13/g` trinity_U13.Trinity.fasta > trinity_prefix_U13.Trinity.fasta
-sed `s/>/>U32/g` trinity_U32.Trinity.fasta > trinity_prefix_U32.Trinity.fasta
+sed 's/>/>K23_/g' ../Assembly/trinity_K23.Trinity.fasta > ../Assembly/trinity_prefix_K23.Trinity.fasta
+sed 's/>/>K32_/g' ../Assembly/trinity_K32.Trinity.fasta > ../Assembly/trinity_prefix_K32.Trinity.fasta
+sed 's/>/>U13_/g' ../Assembly/trinity_U13.Trinity.fasta > ../Assembly/trinity_prefix_U13.Trinity.fasta
+sed 's/>/>U32_/g' ../Assembly/trinity_U32.Trinity.fasta > ../Assembly/trinity_prefix_U32.Trinity.fasta
 
 ```
-
-
-
-Before looking for the coding regions we will combine all the assemblies together. We will be working in the **Coding_Regions/** directory, and for this we will use the UNIX command `cat`.      
+Now we can concatenate the assemblies into a single file:
 
 ```bash
 cat ../Assembly/trinity_prefix_U13.Trinity.fasta \

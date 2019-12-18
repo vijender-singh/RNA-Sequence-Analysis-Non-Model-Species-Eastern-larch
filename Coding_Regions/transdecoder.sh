@@ -18,10 +18,17 @@ date
 ## Combining the trinity assemblies		##
 ##################################################
 
-cat ../Assembly/trinity_U13.Trinity.fasta \
-	../Assembly/trinity_U32.Trinity.fasta \
-	../Assembly/trinity_K32.Trinity.fasta \
-	../Assembly/trinity_K23.Trinity.fasta >> ../Assembly/trinity_combine.fasta
+# add a sample name prefix to each sequence ID in each assembly
+sed 's/>/>K23_/g' ../Assembly/trinity_K23.Trinity.fasta > ../Assembly/trinity_prefix_K23.Trinity.fasta
+sed 's/>/>K32_/g' ../Assembly/trinity_K32.Trinity.fasta > ../Assembly/trinity_prefix_K32.Trinity.fasta
+sed 's/>/>U13_/g' ../Assembly/trinity_U13.Trinity.fasta > ../Assembly/trinity_prefix_U13.Trinity.fasta
+sed 's/>/>U32_/g' ../Assembly/trinity_U32.Trinity.fasta > ../Assembly/trinity_prefix_U32.Trinity.fasta
+
+# concatenate the assemblies
+cat ../Assembly/trinity_prefix_U13.Trinity.fasta \
+	../Assembly/trinity_prefix_U32.Trinity.fasta \
+	../Assembly/trinity_prefix_K32.Trinity.fasta \
+	../Assembly/trinity_prefix_K23.Trinity.fasta >> ../Assembly/trinity_combine.fasta
 
 
 ##################################################
