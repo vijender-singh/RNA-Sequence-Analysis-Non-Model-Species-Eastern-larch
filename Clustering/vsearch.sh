@@ -17,6 +17,7 @@ date
 ##################################################
 ##  	Clustering using vsearch		##
 ##################################################
+#load Module
 module load vsearch/2.4.3
 
 vsearch --threads 8 --log LOGFile \
