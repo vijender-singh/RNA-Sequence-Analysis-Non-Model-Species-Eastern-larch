@@ -13,7 +13,7 @@
 
 hostname
 date
-
+#load Module
 module load trinity/2.6.6
 
 Trinity --seqType fq \
