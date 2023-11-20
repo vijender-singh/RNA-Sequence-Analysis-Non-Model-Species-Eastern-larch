@@ -16,6 +16,7 @@ date
 ##########################################
 ## EnTap				## 
 ##########################################
+# Load module
 module load EnTAP/0.9.0-beta
 module load diamond/0.9.19
 
